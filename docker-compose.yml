@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: leveling
+      POSTGRES_USER: leveling
+      POSTGRES_PASSWORD: leveling
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leveling -d leveling"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  migrate:
+    build: ./backend
+    environment:
+      LEVELING_DATABASE_URL: postgresql+psycopg2://leveling:leveling@postgres:5432/leveling
+    depends_on:
+      postgres: {condition: service_healthy}
+    command: python -m app.manage initdb
+
+  backend:
+    build: ./backend
+    environment:
+      LEVELING_DATABASE_URL: postgresql+psycopg2://leveling:leveling@postgres:5432/leveling
+      LEVELING_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+      migrate: {condition: service_completed_successfully}
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+
+  worker:
+    build: ./backend
+    environment:
+      LEVELING_DATABASE_URL: postgresql+psycopg2://leveling:leveling@postgres:5432/leveling
+      LEVELING_REDIS_URL: redis://redis:6379/0
+    depends_on: [backend, postgres, redis, migrate]
+    command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO --concurrency=4 -Q leveling
+    deploy:
+      replicas: 2
+
+  beat:
+    build: ./backend
+    environment:
+      LEVELING_DATABASE_URL: postgresql+psycopg2://leveling:leveling@postgres:5432/leveling
+      LEVELING_REDIS_URL: redis://redis:6379/0
+    depends_on: [backend, postgres, redis, migrate]
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=INFO
+
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports: ["5173:80"]
+
+volumes:
+  pgdata:

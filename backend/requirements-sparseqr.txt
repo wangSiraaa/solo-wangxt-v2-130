@@ -1,0 +1,3 @@
+# Install separately in a prepared production image if SuiteSparse headers are
+# available; the application detects availability and records that in the run.
+sparseqr==1.0.0

@@ -18,8 +18,11 @@ id_ed25519
 *.p12
 *.pfx
 node_modules/
+frontend/dist/
 .venv/
 venv/
 __pycache__/
 .pytest_cache/
+*.db
+scripts/pressure_100k.csv
 .DS_Store

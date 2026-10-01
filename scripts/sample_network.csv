@@ -1,0 +1,7 @@
+line_code,sequence,from_code,to_code,raw_forward,raw_backward,distance_km,sigma_add_mm,sigma_per_km_mm
+L1,1,BM-A,BM-P1,1.2503,-1.2500,1.0,1,2
+L2,1,BM-P1,BM-P2,0.8201,-0.8198,0.8,1,2
+L3,1,BM-P2,BM-A,-2.0695,2.0702,1.2,1,2
+L4,1,BM-P2,BM-P3,0.5004,-0.5001,0.6,1,2
+L5,1,BM-P3,BM-P1,-1.3200,1.3197,0.9,1,2
+LX,1,ISO-1,ISO-2,0.3001,-0.3000,0.5,1,2
